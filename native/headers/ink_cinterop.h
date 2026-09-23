@@ -97,7 +97,7 @@ int64_t ToolTypeFilterNodeNative_create(
                                        const char* status_str));
 
 int64_t DampingNodeNative_create(
-    void* jni_env_pass_through, int damping_source, float damping_gap,
+    void* jni_env_pass_through, int damp_over, float strength,
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
 
@@ -158,8 +158,8 @@ bool ToolTypeFilterNodeNative_getStylusEnabled(int64_t native_ptr);
 bool ToolTypeFilterNodeNative_getUnknownEnabled(int64_t native_ptr);
 
 // DampingNode accessors:
-int DampingNodeNative_getDampingSourceInt(int64_t native_ptr);
-float DampingNodeNative_getDampingGap(int64_t native_ptr);
+int DampingNodeNative_getDampOverInt(int64_t native_ptr);
+float DampingNodeNative_getStrength(int64_t native_ptr);
 
 // ResponseNode accessors:
 int64_t ResponseNodeNative_getResponseCurvePointer(int64_t native_ptr);
@@ -290,7 +290,7 @@ const char* BrushFamilyNative_getClientBrushFamilyId(int64_t native_pointer);
 // The caller must free the returned string.
 const char* BrushFamilyNative_getDeveloperComment(int64_t native_pointer);
 
-int64_t BrushFamilyNative_getTextureAnimationLoopDurationMillis(
+int64_t BrushFamilyNative_getPaintAnimationLoopDurationMillis(
     int64_t native_pointer);
 
 int64_t BrushFamilyNative_getBrushCoatCount(int64_t native_pointer);
@@ -490,12 +490,12 @@ int64_t ColorFunctionNative_createHueOffset(
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
 
-int64_t ColorFunctionNative_createSaturationMultiplier(
+int64_t ColorFunctionNative_createChromaMultiplier(
     void* jni_env_pass_through, float multiplier,
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
 
-int64_t ColorFunctionNative_createLuminosityOffset(
+int64_t ColorFunctionNative_createLightnessOffset(
     void* jni_env_pass_through, float offset,
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
@@ -512,9 +512,9 @@ float ColorFunctionNative_getOpacityMultiplier(int64_t native_ptr);
 
 float ColorFunctionNative_getHueOffsetDegrees(int64_t native_ptr);
 
-float ColorFunctionNative_getSaturationMultiplier(int64_t native_ptr);
+float ColorFunctionNative_getChromaMultiplier(int64_t native_ptr);
 
-float ColorFunctionNative_getLuminosityOffset(int64_t native_ptr);
+float ColorFunctionNative_getLightnessOffset(int64_t native_ptr);
 
 int64_t ColorFunctionNative_computeReplaceColorLong(
     void* jni_env_pass_through, int64_t native_ptr,
@@ -1606,10 +1606,14 @@ extern "C" {
 // `color_pixel_format` and `stencil_pixel_format` are the `MTLPixelFormat` of
 // the color and stencil textures to render to. `sample_count` is the number of
 // samples per pixel for MSAA. If -1, shader-based antialiasing will be used
-// instead.
+// instead. `texture_for_id_callback` is a callback used to retrieve textures
+// for given texture ID strings, and returns a nullable raw pointer to a
+// `CGImage`.
 int64_t MetalRendererNative_create(
     void* device, uint64_t color_pixel_format, uint64_t stencil_pixel_format,
     int sample_count,
+    void* (*texture_for_id_callback)(int64_t metal_renderer_native_ptr,
+                                     const char* texture_id),
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
 
