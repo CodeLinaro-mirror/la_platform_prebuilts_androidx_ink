@@ -97,7 +97,7 @@ int64_t ToolTypeFilterNodeNative_create(
                                        const char* status_str));
 
 int64_t DampingNodeNative_create(
-    void* jni_env_pass_through, int damping_source, float damping_gap,
+    void* jni_env_pass_through, int damp_over, float strength,
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
 
@@ -158,8 +158,8 @@ bool ToolTypeFilterNodeNative_getStylusEnabled(int64_t native_ptr);
 bool ToolTypeFilterNodeNative_getUnknownEnabled(int64_t native_ptr);
 
 // DampingNode accessors:
-int DampingNodeNative_getDampingSourceInt(int64_t native_ptr);
-float DampingNodeNative_getDampingGap(int64_t native_ptr);
+int DampingNodeNative_getDampOverInt(int64_t native_ptr);
+float DampingNodeNative_getStrength(int64_t native_ptr);
 
 // ResponseNode accessors:
 int64_t ResponseNodeNative_getResponseCurvePointer(int64_t native_ptr);
@@ -290,7 +290,7 @@ const char* BrushFamilyNative_getClientBrushFamilyId(int64_t native_pointer);
 // The caller must free the returned string.
 const char* BrushFamilyNative_getDeveloperComment(int64_t native_pointer);
 
-int64_t BrushFamilyNative_getTextureAnimationLoopDurationMillis(
+int64_t BrushFamilyNative_getPaintAnimationLoopDurationMillis(
     int64_t native_pointer);
 
 int64_t BrushFamilyNative_getBrushCoatCount(int64_t native_pointer);
@@ -490,12 +490,12 @@ int64_t ColorFunctionNative_createHueOffset(
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
 
-int64_t ColorFunctionNative_createSaturationMultiplier(
+int64_t ColorFunctionNative_createChromaMultiplier(
     void* jni_env_pass_through, float multiplier,
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
 
-int64_t ColorFunctionNative_createLuminosityOffset(
+int64_t ColorFunctionNative_createLightnessOffset(
     void* jni_env_pass_through, float offset,
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
@@ -512,9 +512,9 @@ float ColorFunctionNative_getOpacityMultiplier(int64_t native_ptr);
 
 float ColorFunctionNative_getHueOffsetDegrees(int64_t native_ptr);
 
-float ColorFunctionNative_getSaturationMultiplier(int64_t native_ptr);
+float ColorFunctionNative_getChromaMultiplier(int64_t native_ptr);
 
-float ColorFunctionNative_getLuminosityOffset(int64_t native_ptr);
+float ColorFunctionNative_getLightnessOffset(int64_t native_ptr);
 
 int64_t ColorFunctionNative_computeReplaceColorLong(
     void* jni_env_pass_through, int64_t native_ptr,
@@ -842,9 +842,9 @@ typedef struct {
 } AffineTransformNative_Parallelogram;
 
 AffineTransformNative_Parallelogram AffineTransformNative_apply(
-    float a, float b, float c, float d, float e, float f, float quad_center_x,
-    float quad_center_y, float quad_width, float quad_height,
-    float quad_rotation_degrees, float quad_shear_factor);
+    float m00, float m10, float m20, float m01, float m11, float m21,
+    float quad_center_x, float quad_center_y, float quad_width,
+    float quad_height, float quad_rotation_degrees, float quad_shear_factor);
 
 #ifdef __cplusplus
 }  // extern "C"
@@ -1575,6 +1575,89 @@ void StatusNative_throwExceptionFromUnknownStatusCodeForTesting(
 #endif
 
 #endif  // THIRD_PARTY_INK_KMP_STATUS_NATIVE_H_
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef THIRD_PARTY_INK_RENDERING_METAL_METAL_RENDERER_NATIVE_H_
+#define THIRD_PARTY_INK_RENDERING_METAL_METAL_RENDERER_NATIVE_H_
+
+// C-compatible library header for Kotlin-native bindings.
+
+#include <simd/types.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Creates a heap-allocated `ink::rendering::MetalRenderer`, returning a raw
+// pointer to it. `device` is a pointer to a MTLDevice to use for rendering.
+// `color_pixel_format` and `stencil_pixel_format` are the `MTLPixelFormat` of
+// the color and stencil textures to render to. `sample_count` is the number of
+// samples per pixel for MSAA. If -1, shader-based antialiasing will be used
+// instead. `texture_for_id_callback` is a callback used to retrieve textures
+// for given texture ID strings, and returns a nullable raw pointer to a
+// `CGImage`.
+int64_t MetalRendererNative_create(
+    void* device, uint64_t color_pixel_format, uint64_t stencil_pixel_format,
+    int sample_count,
+    void* (*texture_for_id_callback)(int64_t metal_renderer_native_ptr,
+                                     const char* texture_id),
+    void (*throw_from_status_callback)(void* jni_env, int status_code,
+                                       const char* status_str));
+
+// Draws an in-progress stroke using the given render encoder. `render_encoder`
+// is a pointer to a MTLRenderCommandEncoder. `in_progress_stroke_native_ptr` is
+// a raw pointer to a native `ink::InProgressStroke`. The remaining parameters
+// are the elements of the model, view, and projection transforms.
+void MetalRendererNative_drawInProgressStroke(
+    int64_t native_ptr, void* render_encoder,
+    int64_t in_progress_stroke_native_ptr, float model_transform_m00,
+    float model_transform_m10, float model_transform_m20,
+    float model_transform_m01, float model_transform_m11,
+    float model_transform_m21, float view_transform_m00,
+    float view_transform_m10, float view_transform_m20,
+    float view_transform_m01, float view_transform_m11,
+    float view_transform_m21, float projection_transform_m00,
+    float projection_transform_m10, float projection_transform_m20,
+    float projection_transform_m01, float projection_transform_m11,
+    float projection_transform_m21);
+
+// Draws a completed stroke using the given render encoder. `render_encoder`
+// is a pointer to a MTLRenderCommandEncoder. `stroke_native_ptr` is a raw
+// pointer to a native `ink::Stroke`. The remaining parameters are the elements
+// of the model, view, and projection transforms.
+void MetalRendererNative_drawStroke(
+    int64_t native_ptr, void* render_encoder, int64_t stroke_native_ptr,
+    float model_transform_m00, float model_transform_m10,
+    float model_transform_m20, float model_transform_m01,
+    float model_transform_m11, float model_transform_m21,
+    float view_transform_m00, float view_transform_m10,
+    float view_transform_m20, float view_transform_m01,
+    float view_transform_m11, float view_transform_m21,
+    float projection_transform_m00, float projection_transform_m10,
+    float projection_transform_m20, float projection_transform_m01,
+    float projection_transform_m11, float projection_transform_m21);
+
+// Deletes the heap-allocated `ink::rendering::MetalRenderer`.
+void MetalRendererNative_free(int64_t native_ptr);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif
+
+#endif  // THIRD_PARTY_INK_RENDERING_METAL_METAL_RENDERER_NATIVE_H_
 // Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
