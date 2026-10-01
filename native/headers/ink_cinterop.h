@@ -420,6 +420,9 @@ int64_t BrushPaintNative_newCopyOfColorFunction(int64_t native_ptr, int index);
 
 int BrushPaintNative_getSelfOverlapInt(int64_t native_ptr);
 
+int64_t BrushPaintNative_getPaintAnimationLoopDurationMillis(
+    int64_t native_pointer);
+
 bool BrushPaintNative_isCompatibleWithMeshFormat(
     int64_t native_ptr, int64_t mesh_format_native_ptr);
 
@@ -1594,7 +1597,6 @@ void StatusNative_throwExceptionFromUnknownStatusCodeForTesting(
 
 // C-compatible library header for Kotlin-native bindings.
 
-#include <simd/types.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -1608,7 +1610,7 @@ extern "C" {
 // samples per pixel for MSAA. If -1, shader-based antialiasing will be used
 // instead. `texture_for_id_callback` is a callback used to retrieve textures
 // for given texture ID strings, and returns a nullable raw pointer to a
-// `CGImage`.
+// `UIImage`.
 int64_t MetalRendererNative_create(
     void* device, uint64_t color_pixel_format, uint64_t stencil_pixel_format,
     int sample_count,
@@ -1619,36 +1621,31 @@ int64_t MetalRendererNative_create(
 
 // Draws an in-progress stroke using the given render encoder. `render_encoder`
 // is a pointer to a MTLRenderCommandEncoder. `in_progress_stroke_native_ptr` is
-// a raw pointer to a native `ink::InProgressStroke`. The remaining parameters
-// are the elements of the model, view, and projection transforms.
+// a raw pointer to a native `ink::InProgressStroke`. `texture_width` and
+// `texture_height` are the width and height of the texture the render encoder
+// is drawing to, used to compute the projection transform, since the texture
+// size can't be read from the render encoder. The remaining parameters are the
+// elements of the stroke-to-screen affine transform (used to populate the
+// view transform matrix in the Metal renderer, leaving the model transform
+// as identity).
 void MetalRendererNative_drawInProgressStroke(
     int64_t native_ptr, void* render_encoder,
-    int64_t in_progress_stroke_native_ptr, float model_transform_m00,
-    float model_transform_m10, float model_transform_m20,
-    float model_transform_m01, float model_transform_m11,
-    float model_transform_m21, float view_transform_m00,
-    float view_transform_m10, float view_transform_m20,
-    float view_transform_m01, float view_transform_m11,
-    float view_transform_m21, float projection_transform_m00,
-    float projection_transform_m10, float projection_transform_m20,
-    float projection_transform_m01, float projection_transform_m11,
-    float projection_transform_m21);
+    int64_t in_progress_stroke_native_ptr, double texture_width,
+    double texture_height, float stroke_to_screen_transform_m00,
+    float stroke_to_screen_transform_m10, float stroke_to_screen_transform_m20,
+    float stroke_to_screen_transform_m01, float stroke_to_screen_transform_m11,
+    float stroke_to_screen_transform_m21);
 
 // Draws a completed stroke using the given render encoder. `render_encoder`
 // is a pointer to a MTLRenderCommandEncoder. `stroke_native_ptr` is a raw
-// pointer to a native `ink::Stroke`. The remaining parameters are the elements
-// of the model, view, and projection transforms.
+// pointer to a native `ink::Stroke`. The remaining parameters are the same as
+// for `MetalRendererNative_drawInProgressStroke`.
 void MetalRendererNative_drawStroke(
     int64_t native_ptr, void* render_encoder, int64_t stroke_native_ptr,
-    float model_transform_m00, float model_transform_m10,
-    float model_transform_m20, float model_transform_m01,
-    float model_transform_m11, float model_transform_m21,
-    float view_transform_m00, float view_transform_m10,
-    float view_transform_m20, float view_transform_m01,
-    float view_transform_m11, float view_transform_m21,
-    float projection_transform_m00, float projection_transform_m10,
-    float projection_transform_m20, float projection_transform_m01,
-    float projection_transform_m11, float projection_transform_m21);
+    double texture_width, double texture_height,
+    float stroke_to_screen_transform_m00, float stroke_to_screen_transform_m10,
+    float stroke_to_screen_transform_m20, float stroke_to_screen_transform_m01,
+    float stroke_to_screen_transform_m11, float stroke_to_screen_transform_m21);
 
 // Deletes the heap-allocated `ink::rendering::MetalRenderer`.
 void MetalRendererNative_free(int64_t native_ptr);
@@ -1808,6 +1805,7 @@ typedef struct {
   float pressure;
   float tilt_radians;
   float orientation_radians;
+  float barrel_twist_radians;
 } InProgressStrokeNative_Input;
 
 typedef struct {
@@ -1871,7 +1869,7 @@ void InProgressStrokeNative_populateInputs(
 InProgressStrokeNative_Input InProgressStrokeNative_getInput(
     int64_t native_pointer, int index);
 
-float InProgressStrokeNative_getBaseAnimationPhase(int64_t native_pointer);
+float InProgressStrokeNative_getBasePaintAnimationPhase(int64_t native_pointer);
 
 int InProgressStrokeNative_getBrushCoatCount(int64_t native_pointer);
 
@@ -1989,6 +1987,7 @@ typedef struct {
   float pressure;
   float tilt_radians;
   float orientation_radians;
+  float barrel_twist_radians;
 } StrokeInputBatchNative_Input;
 
 int64_t StrokeInputBatchNative_create(void);
@@ -2014,16 +2013,18 @@ bool StrokeInputBatchNative_hasTilt(int64_t native_pointer);
 
 bool StrokeInputBatchNative_hasOrientation(int64_t native_pointer);
 
+bool StrokeInputBatchNative_hasBarrelTwist(int64_t native_pointer);
+
 int StrokeInputBatchNative_getNoiseSeed(int64_t native_pointer);
 
-float StrokeInputBatchNative_getBaseAnimationPhase(int64_t native_pointer);
+float StrokeInputBatchNative_getBasePaintAnimationPhase(int64_t native_pointer);
 
 void MutableStrokeInputBatchNative_clear(int64_t native_pointer);
 
 bool MutableStrokeInputBatchNative_appendSingle(
     void* jni_env_pass_through, int64_t native_pointer, int tool_type, float x,
     float y, int64_t elapsed_time_millis, float stroke_unit_length_cm,
-    float pressure, float tilt, float orientation,
+    float pressure, float tilt, float orientation, float barrel_twist,
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
 
@@ -2038,8 +2039,8 @@ int64_t MutableStrokeInputBatchNative_newCopy(int64_t native_pointer);
 void MutableStrokeInputBatchNative_setNoiseSeed(int64_t native_pointer,
                                                 int seed);
 
-void MutableStrokeInputBatchNative_setBaseAnimationPhase(int64_t native_pointer,
-                                                         float phase);
+void MutableStrokeInputBatchNative_setBasePaintAnimationPhase(
+    int64_t native_pointer, float phase);
 
 #ifdef __cplusplus
 }  // extern "C"
