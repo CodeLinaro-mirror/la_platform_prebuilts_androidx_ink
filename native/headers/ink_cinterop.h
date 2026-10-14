@@ -234,9 +234,6 @@ int64_t BrushCoatNative_create(int64_t tip_native_pointer,
 
 void BrushCoatNative_free(int64_t native_pointer);
 
-bool BrushCoatNative_isCompatibleWithMeshFormat(
-    int64_t native_pointer, int64_t mesh_format_native_pointer);
-
 int64_t BrushCoatNative_newCopyOfBrushTip(int64_t native_pointer);
 
 int BrushCoatNative_getBrushPaintPreferencesCount(int64_t native_pointer);
@@ -2064,6 +2061,7 @@ void MutableStrokeInputBatchNative_setBasePaintAnimationPhase(
 #ifndef THIRD_PARTY_INK_STROKES_INTERNAL_JNI_STROKE_NATIVE_H_
 #define THIRD_PARTY_INK_STROKES_INTERNAL_JNI_STROKE_NATIVE_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -2116,6 +2114,11 @@ int64_t MultipleStrokesNative_releaseStroke(int64_t native_pointer,
 
 // Frees the remaining result of the partial erase.
 void MultipleStrokesNative_free(int64_t native_pointer);
+
+// Returns whether the given `Stroke` can be used with the given `Brush` without
+// regenerating the mesh.
+bool StrokeNative_shapeSupportsBrush(int64_t native_pointer,
+                                     int64_t brush_native_pointer);
 
 #ifdef __cplusplus
 }  // extern "C"
