@@ -1738,6 +1738,7 @@ void MultipleBrushFamiliesNative_free(int64_t native_pointer);
 #ifndef THIRD_PARTY_INK_STORAGE_INTERNAL_JNI_PARTITIONED_MESH_SERIALIZATION_NATIVE_H_
 #define THIRD_PARTY_INK_STORAGE_INTERNAL_JNI_PARTITIONED_MESH_SERIALIZATION_NATIVE_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -1748,6 +1749,7 @@ extern "C" {
 // the array is empty, byte_array will be nullptr.
 int64_t PartitionedMeshSerializationNative_createFromProto(
     void* jni_env_pass_through, const int8_t* byte_array, int size,
+    bool fill_missing_attributes,
     void (*throw_from_status_callback)(void* jni_env, int status_code,
                                        const char* status_str));
 
