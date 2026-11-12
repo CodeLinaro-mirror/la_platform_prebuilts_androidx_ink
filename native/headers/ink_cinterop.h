@@ -24,8 +24,7 @@ extern "C" {
 int64_t BrushBehaviorNative_createFromOrderedNodes(
     void* jni_env_pass_through, const int64_t* node_native_pointers,
     int num_nodes, const char* developer_comment,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void BrushBehaviorNative_free(int64_t native_ptr);
 
@@ -72,68 +71,57 @@ extern "C" {
 // C++ BrushBehavior::Node object stored in Kotlin.
 
 // If validation fails for any create function, it calls
-// throw_from_status_callback with the value passed as jni_env_pass_through,
-// the error status code as an int, and the error status message.
+// throw_from_status_callback with the value passed as jni_env_pass_through
+// and a pointer to the error absl::Status as const void*.
 int64_t SourceNodeNative_create(
     void* jni_env_pass_through, int source, float source_value_start,
     float source_value_end, int source_out_of_range_behavior,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t ConstantNodeNative_create(
     void* jni_env_pass_through, float value,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
-int64_t NoiseNodeNative_create(void* jni_env_pass_through, int seed,
-                               int vary_over, float base_period,
-                               void (*throw_from_status_callback)(void*, int,
-                                                                  const char*));
+int64_t NoiseNodeNative_create(
+    void* jni_env_pass_through, int seed, int vary_over, float base_period,
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t ToolTypeFilterNodeNative_create(
     void* jni_env_pass_through, bool mouse_enabled, bool touch_enabled,
     bool stylus_enabled, bool unknown_enabled,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t DampingNodeNative_create(
     void* jni_env_pass_through, int damp_over, float strength,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t ResponseNodeNative_create(
     void* jni_env_pass_through, int64_t easing_function_native_pointer,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t IntegralNodeNative_create(
     void* jni_env_pass_through, int integrate_over, float integral_value_start,
     float integral_value_end, int integral_out_of_range_behavior,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t BinaryOpNodeNative_create(
     void* jni_env_pass_through, int operation,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t InterpolationNodeNative_create(
     void* jni_env_pass_through, int interpolation,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t TargetNodeNative_create(
     void* jni_env_pass_through, int target, float target_modifier_start,
     float target_modifier_end,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t PolarTargetNodeNative_create(
     void* jni_env_pass_through, int polar_target, float angle_range_start,
     float angle_range_end, float magnitude_range_start,
     float magnitude_range_end,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void NodeNative_free(int64_t native_ptr);
 
@@ -276,8 +264,7 @@ int64_t BrushFamilyNative_create(
     void* jni_env_pass_through, const int64_t* coat_native_pointers,
     int num_coats, int64_t input_model_pointer,
     const char* client_brush_family_id, const char* developer_comment,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void BrushFamilyNative_free(int64_t native_pointer);
 
@@ -348,8 +335,7 @@ int64_t BrushNative_create(
     void* jni_env_pass_through, int64_t family_native_pointer, float color_red,
     float color_green, float color_blue, float color_alpha, int color_space_id,
     float size, float epsilon,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void BrushNative_free(int64_t native_pointer);
 
@@ -397,8 +383,7 @@ int64_t BrushPaintNative_create(
     void* jni_env_pass_through, const int64_t* texture_layer_native_pointers,
     int num_texture_layers, const int64_t* color_function_native_pointers,
     int num_color_functions, int self_overlap_int,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void BrushPaintNative_free(int64_t native_ptr);
 
@@ -429,16 +414,14 @@ int64_t TilingTextureNative_create(
     void* jni_env_pass_through, const char* client_texture_id, float size_x,
     float size_y, float offset_x, float offset_y, float rotation_degrees,
     int size_unit, int origin, int wrap_x, int wrap_y, int blend_mode,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t StampingTextureNative_create(
     void* jni_env_pass_through, const char* client_texture_id,
     int animation_frames, int animation_rows, int animation_columns,
     int64_t animation_duration_millis, int animation_repeat_mode,
     int blend_mode,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void TextureLayerNative_free(int64_t native_ptr);
 
@@ -482,29 +465,24 @@ int TextureLayerNative_getBlendModeInt(int64_t native_ptr);
 
 int64_t ColorFunctionNative_createOpacityMultiplier(
     void* jni_env_pass_through, float multiplier,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t ColorFunctionNative_createHueOffset(
     void* jni_env_pass_through, float offsetDegrees,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t ColorFunctionNative_createChromaMultiplier(
     void* jni_env_pass_through, float multiplier,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t ColorFunctionNative_createLightnessOffset(
     void* jni_env_pass_through, float offset,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t ColorFunctionNative_createReplaceColor(
     void* jni_env_pass_through, float color_red, float color_green,
     float color_blue, float color_alpha, int color_space_id,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void ColorFunctionNative_free(int64_t native_ptr);
 
@@ -574,8 +552,7 @@ int64_t BrushTipNative_create(
     float rotation_degrees, float particle_gap_distance_scale,
     int64_t particle_gap_duration_millis,
     const int64_t* behavior_native_pointers, int num_behaviors,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void BrushTipNative_free(int64_t native_ptr);
 
@@ -641,12 +618,10 @@ int64_t EasingFunctionNative_createCopyOf(int64_t other_native_ptr);
 // EasingFunction::Predefined parameters and returns a pointer to it as
 // int64_t, suitable for wrapping in a Kotlin EasingFunction. If validation
 // fails, calls throw_from_status_callback with the value passed as
-// jni_env_pass_through, the error status code as an int, and the error status
-// message.
+// jni_env_pass_through and a pointer to the error absl::Status as const void*.
 int64_t EasingFunctionNative_createPredefined(
     void* jni_env_pass_through, int value,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 // Creates a new heap-allocated C++ EasingFunction with
 // EasingFunction::CubicBezier parameters and returns a pointer to it as
@@ -654,8 +629,7 @@ int64_t EasingFunctionNative_createPredefined(
 // fails, calls throw_from_status_callback as above.
 int64_t EasingFunctionNative_createCubicBezier(
     void* jni_env_pass_through, float x1, float y1, float x2, float y2,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 // Creates a new heap-allocated C++ EasingFunction with
 // EasingFunction::Linear parameters and returns a pointer to it as
@@ -665,8 +639,7 @@ int64_t EasingFunctionNative_createCubicBezier(
 // fails, calls throw_from_status_callback as above.
 int64_t EasingFunctionNative_createLinear(
     void* jni_env_pass_through, const float* points, int num_coords,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 // Creates a new heap-allocated C++ EasingFunction with
 // EasingFunction::Steps parameters and returns a pointer to it as
@@ -674,8 +647,7 @@ int64_t EasingFunctionNative_createLinear(
 // fails, calls throw_from_status_callback as above.
 int64_t EasingFunctionNative_createSteps(
     void* jni_env_pass_through, int step_count, int step_position,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 // Frees a Kotlin EasingFunction.nativePointer.
 void EasingFunctionNative_free(int64_t native_ptr);
@@ -1529,45 +1501,48 @@ int StatusNative_statusCodeOutOfRange();
 
 int StatusNative_statusCodeUnimplemented();
 
+int StatusNative_getStatusCode(const void* status);
+
+// Returns a newly allocated NUL-terminated string for `status`. The caller
+// must free the returned string with `StatusNative_freeStatusString`.
+const char* StatusNative_allocateStatusString(const void* status);
+
+// Frees a string returned by `StatusNative_allocateStatusString` (no-op if
+// `status_str` is null).
+void StatusNative_freeStatusString(const char* status_str);
+
 void StatusNative_throwExceptionFromOkStatusForTesting(
     void* jni_env_pass_through,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void StatusNative_throwExceptionFromFailedPreconditionForTesting(
     void* jni_env_pass_through,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str),
+    void (*throw_from_status_callback)(void* jni_env, const void* status),
     const char* message);
 
 void StatusNative_throwExceptionFromInvalidArgumentForTesting(
     void* jni_env_pass_through,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str),
+    void (*throw_from_status_callback)(void* jni_env, const void* status),
     const char* message);
 
 void StatusNative_throwExceptionFromNotFoundForTesting(
     void* jni_env_pass_through,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str),
+    void (*throw_from_status_callback)(void* jni_env, const void* status),
     const char* message);
 
 void StatusNative_throwExceptionFromOutOfRangeForTesting(
     void* jni_env_pass_through,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str),
+    void (*throw_from_status_callback)(void* jni_env, const void* status),
     const char* message);
 
 void StatusNative_throwExceptionFromUnimplementedForTesting(
     void* jni_env_pass_through,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str),
+    void (*throw_from_status_callback)(void* jni_env, const void* status),
     const char* message);
 
 void StatusNative_throwExceptionFromUnknownStatusCodeForTesting(
     void* jni_env_pass_through,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str),
+    void (*throw_from_status_callback)(void* jni_env, const void* status),
     int status_code, const char* message);
 
 #ifdef __cplusplus
@@ -1613,8 +1588,7 @@ int64_t MetalRendererNative_create(
     int sample_count,
     void* (*texture_for_id_callback)(int64_t metal_renderer_native_ptr,
                                      const char* texture_id),
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 // Draws an in-progress stroke using the given render encoder. `render_encoder`
 // is a pointer to a MTLRenderCommandEncoder. `in_progress_stroke_native_ptr` is
@@ -1676,11 +1650,9 @@ extern "C" {
 #endif
 
 int64_t BrushFamilySerializationNative_createFromProto(
-    void* jni_env_pass_through,
-    void* on_decode_texture_pass_through, const int8_t* byte_array,
-    int size, int max_version,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str),
+    void* jni_env_pass_through, void* on_decode_texture_pass_through,
+    const int8_t* byte_array, int size, int max_version,
+    void (*throw_from_status_callback)(void* jni_env, const void* status),
     const char* (*on_decode_texture_callback)(void* pass_through,
                                               const char* encoded_id,
                                               const int8_t* bitmap,
@@ -1699,11 +1671,9 @@ int8_t* BrushFamilySerializationNative_encodeMultiple(
     int8_t* (*alloc_native_array_callback)(void* pass_through, int size));
 
 int64_t MultipleBrushFamiliesNative_createFromProto(
-    void* jni_env_pass_through,
-    void* on_decode_texture_pass_through, const int8_t* byte_array,
-    int size, int max_version,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str),
+    void* jni_env_pass_through, void* on_decode_texture_pass_through,
+    const int8_t* byte_array, int size, int max_version,
+    void (*throw_from_status_callback)(void* jni_env, const void* status),
     const char* (*on_decode_texture_callback)(void* pass_through,
                                               const char* encoded_id,
                                               const int8_t* bitmap,
@@ -1750,8 +1720,7 @@ extern "C" {
 int64_t PartitionedMeshSerializationNative_createFromProto(
     void* jni_env_pass_through, const int8_t* byte_array, int size,
     bool fill_missing_attributes,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 // native_pointer is a raw pointer to an ink::PartitionedMesh.
 //
@@ -1798,8 +1767,7 @@ extern "C" {
 // the array is empty, byte_array will be nullptr.
 int64_t StrokeInputBatchSerializationNative_createFromProto(
     void* jni_env_pass_through, const int8_t* byte_array, int size,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 // native_ptr is a raw pointer to an ink::StrokeInputBatch.
 //
@@ -1882,14 +1850,12 @@ void InProgressStrokeNative_start(int64_t native_pointer,
 bool InProgressStrokeNative_enqueueInputs(
     void* jni_env_pass_through, int64_t native_pointer,
     int64_t real_inputs_pointer, int64_t predicted_inputs_pointer,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 bool InProgressStrokeNative_updateShape(
     void* jni_env_pass_through, int64_t native_pointer,
     int64_t j_current_elapsed_time_millis,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 void InProgressStrokeNative_finishInput(int64_t native_pointer);
 
@@ -1993,8 +1959,7 @@ extern "C" {
 // native pointer to the resulting PartitionedMesh.
 int64_t MeshCreationNative_createClosedShapeFromStrokeInputBatch(
     void* jni_env_pass_through, int64_t stroke_input_batch_native_pointer,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 #ifdef __cplusplus
 }  // extern "C"
@@ -2072,14 +2037,12 @@ bool MutableStrokeInputBatchNative_appendSingle(
     void* jni_env_pass_through, int64_t native_pointer, int tool_type, float x,
     float y, int64_t elapsed_time_millis, float stroke_unit_length_cm,
     float pressure, float tilt, float orientation, float barrel_twist,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 bool MutableStrokeInputBatchNative_appendBatch(
     void* jni_env_pass_through, int64_t native_pointer,
     int64_t append_from_native_pointer,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int64_t MutableStrokeInputBatchNative_newCopy(int64_t native_pointer);
 
@@ -2152,8 +2115,7 @@ int64_t MultipleStrokesNative_createWithSplit(
     void* jni_env_pass_through, int64_t target_stroke_ptr, float transform_a,
     float transform_b, float transform_c, float transform_d, float transform_e,
     float transform_f, float tolerance,
-    void (*throw_from_status_callback)(void* jni_env, int status_code,
-                                       const char* status_str));
+    void (*throw_from_status_callback)(void* jni_env, const void* status));
 
 int32_t MultipleStrokesNative_getStrokeCount(int64_t native_pointer);
 
