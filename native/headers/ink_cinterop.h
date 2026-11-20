@@ -1597,15 +1597,15 @@ int64_t MetalRendererNative_create(
 // is drawing to, used to compute the projection transform, since the texture
 // size can't be read from the render encoder. The remaining parameters are the
 // elements of the stroke-to-screen affine transform (used to populate the
-// view transform matrix in the Metal renderer, leaving the model transform
-// as identity).
+// object-to-canvas transform matrix in the Metal renderer) and the state of the
+// animation clock in milliseconds.
 void MetalRendererNative_drawInProgressStroke(
     int64_t native_ptr, void* render_encoder,
     int64_t in_progress_stroke_native_ptr, double texture_width,
     double texture_height, float stroke_to_screen_transform_m00,
     float stroke_to_screen_transform_m10, float stroke_to_screen_transform_m20,
     float stroke_to_screen_transform_m01, float stroke_to_screen_transform_m11,
-    float stroke_to_screen_transform_m21);
+    float stroke_to_screen_transform_m21, int64_t animator_clock_state_millis);
 
 // Draws a completed stroke using the given render encoder. `render_encoder`
 // is a pointer to a MTLRenderCommandEncoder. `stroke_native_ptr` is a raw
@@ -1616,7 +1616,8 @@ void MetalRendererNative_drawStroke(
     double texture_width, double texture_height,
     float stroke_to_screen_transform_m00, float stroke_to_screen_transform_m10,
     float stroke_to_screen_transform_m20, float stroke_to_screen_transform_m01,
-    float stroke_to_screen_transform_m11, float stroke_to_screen_transform_m21);
+    float stroke_to_screen_transform_m11, float stroke_to_screen_transform_m21,
+    int64_t animator_clock_state_millis);
 
 // Deletes the heap-allocated `ink::rendering::MetalRenderer`.
 void MetalRendererNative_free(int64_t native_ptr);
@@ -1658,16 +1659,28 @@ int64_t BrushFamilySerializationNative_createFromProto(
                                               const int8_t* bitmap,
                                               int bitmap_size));
 
+// Serializes the native brush family to a byte array allocated with
+// `alloc_native_array_callback`. `texture_ids`, `bitmaps`, and `bitmap_lengths`
+// are parallel arrays of size `num_textures` that map client texture IDs to PNG
+// bytes. `encoded_texture_id_map_keys` and `encoded_texture_id_map_values` are
+// parallel arrays of size `encoded_texture_id_map_size` that map client texture
+// IDs to the texture IDs to write in their place; client texture IDs that are
+// not in that map are written unchanged.
 int8_t* BrushFamilySerializationNative_encode(
     void* alloc_native_array_pass_through, int64_t native_pointer,
     const char** texture_ids, const int8_t** bitmaps, const int* bitmap_lengths,
-    int num_textures,
+    int num_textures, const char** encoded_texture_id_map_keys,
+    const char** encoded_texture_id_map_values, int encoded_texture_id_map_size,
     int8_t* (*alloc_native_array_callback)(void* pass_through, int size));
 
+// Like `BrushFamilySerializationNative_encode`, but serializes multiple native
+// brush families together.
 int8_t* BrushFamilySerializationNative_encodeMultiple(
     void* alloc_native_array_pass_through, int64_t* native_pointers,
     int num_brush_families, const char** texture_ids, const int8_t** bitmaps,
     const int* bitmap_lengths, int num_textures,
+    const char** encoded_texture_id_map_keys,
+    const char** encoded_texture_id_map_values, int encoded_texture_id_map_size,
     int8_t* (*alloc_native_array_callback)(void* pass_through, int size));
 
 int64_t MultipleBrushFamiliesNative_createFromProto(
@@ -2137,3 +2150,39 @@ bool StrokeNative_shapeSupportsBrush(int64_t native_pointer,
 #endif
 
 #endif  // THIRD_PARTY_INK_STROKES_INTERNAL_JNI_STROKE_NATIVE_H_
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef THIRD_PARTY_INK_STROKES_INTERNAL_JNI_STROKE_PAINT_ANIMATION_CLOCK_NATIVE_H_
+#define THIRD_PARTY_INK_STROKES_INTERNAL_JNI_STROKE_PAINT_ANIMATION_CLOCK_NATIVE_H_
+
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+float StrokePaintAnimationClockNative_calculateBasePaintAnimationPhase(
+    int64_t clock_state_millis, int64_t brush_family_loop_duration_millis);
+
+float StrokePaintAnimationClockNative_calculateCurrentAnimationPhase(
+    int64_t clock_state_millis, int64_t brush_family_loop_duration_millis,
+    int64_t brush_paint_loop_duration_millis,
+    float stroke_base_paint_animation_phase);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif
+
+#endif  // THIRD_PARTY_INK_STROKES_INTERNAL_JNI_STROKE_PAINT_ANIMATION_CLOCK_NATIVE_H_
